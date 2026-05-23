@@ -1,0 +1,35 @@
+# Normalize line endings on commit; check out platform-native by default.
+* text=auto
+
+# Files executed by a Unix shell MUST stay LF, even on Windows checkouts —
+# CRLF here makes bash choke (`set: pipefail: invalid option name`, stray
+# `\r` "command not found"). This bit us when `git archive` carried CRLF
+# build.sh to the macOS build box.
+*.sh        text eol=lf
+*.bash      text eol=lf
+
+# Other Unix-side text that should never gain CRLF
+Dockerfile  text eol=lf
+*.spec      text eol=lf
+
+# Windows batch / PowerShell stay CRLF
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+*.ps1       text eol=crlf
+
+# Binary assets — never touch
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.ico       binary
+*.icns      binary
+*.webp      binary
+*.gif       binary
+*.mp4       binary
+*.mp3       binary
+*.wav       binary
+*.woff      binary
+*.woff2     binary
+*.ttf       binary
+*.otf       binary
+*.pdf       binary
