@@ -14,3 +14,35 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* --- Scrollbars --------------------------------------------------------- */
+/* The default WebView2 / WKWebView scrollbar is wide and visually loud.     */
+/* Render a slim, rounded, low-contrast bar that stays quiet until hovered.  */
+* {
+  scrollbar-width: thin; /* Firefox / non-webkit fallback */
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+  border: 3px solid transparent; /* transparent border slims the visible thumb */
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.32);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
