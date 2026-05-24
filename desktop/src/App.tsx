@@ -76,7 +76,7 @@ function Shell() {
             Reel Video
           </Title>
           <Tag color="processing" style={{ marginTop: 6 }}>
-            v{appVersion || "0.1.1"} · {t("app.desktopTag")}
+            v{appVersion || "0.1.2"} · {t("app.desktopTag")}
           </Tag>
         </div>
         <Menu
