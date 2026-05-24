@@ -29,16 +29,10 @@ jobs:
       matrix:
         include:
           - platform: windows-latest
-            sidecar: pwsh packaging/desktop-sidecar/build.ps1
-            shell: pwsh
             bundles: "--bundles nsis"
           - platform: macos-13 # Intel
-            sidecar: bash packaging/desktop-sidecar/build.sh
-            shell: bash
             bundles: "--bundles dmg"
           - platform: macos-14 # Apple Silicon
-            sidecar: bash packaging/desktop-sidecar/build.sh
-            shell: bash
             bundles: "--bundles dmg"
 
     runs-on: ${{ matrix.platform }}
@@ -73,9 +67,15 @@ jobs:
         working-directory: desktop
         run: pnpm install --frozen-lockfile
 
-      - name: Build Python sidecar
-        shell: ${{ matrix.shell }}
-        run: ${{ matrix.sidecar }}
+      - name: Build Python sidecar (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: pwsh packaging/desktop-sidecar/build.ps1
+
+      - name: Build Python sidecar (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: bash packaging/desktop-sidecar/build.sh
 
       - name: Build app & publish release
         uses: tauri-apps/tauri-action@v0
