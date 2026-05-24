@@ -1,0 +1,101 @@
+name: Release
+
+# Build the desktop app on all three targets and publish a GitHub Release.
+#
+#   - windows-latest : Windows x64        → Reel Video_<ver>_x64-setup.exe (NSIS)
+#   - macos-13       : macOS Intel x86_64  → Reel Video_<ver>_x64.dmg
+#   - macos-14       : macOS Apple Silicon → Reel Video_<ver>_aarch64.dmg
+#
+# Trigger: push a tag like `v0.1.2` to cut a release (a DRAFT is created so you
+# can review the artifacts before publishing). `workflow_dispatch` runs the same
+# build without a tag and just uploads the bundles as workflow artifacts.
+#
+# Note: builds are NOT code-signed/notarized — users will see the usual
+# Gatekeeper / SmartScreen prompts on unsigned binaries.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            sidecar: pwsh packaging/desktop-sidecar/build.ps1
+            shell: pwsh
+            bundles: "--bundles nsis"
+          - platform: macos-13 # Intel
+            sidecar: bash packaging/desktop-sidecar/build.sh
+            shell: bash
+            bundles: "--bundles dmg"
+          - platform: macos-14 # Apple Silicon
+            sidecar: bash packaging/desktop-sidecar/build.sh
+            shell: bash
+            bundles: "--bundles dmg"
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: desktop/pnpm-lock.yaml
+
+      - name: Set up uv (Python sidecar build)
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/src-tauri
+
+      - name: Install frontend deps
+        working-directory: desktop
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Python sidecar
+        shell: ${{ matrix.shell }}
+        run: ${{ matrix.sidecar }}
+
+      - name: Build app & publish release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: desktop
+          args: ${{ matrix.bundles }}
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+          releaseName: ${{ startsWith(github.ref, 'refs/tags/') && format('Reel Video {0}', github.ref_name) || '' }}
+          releaseBody: "See CHANGELOG.md for what's new."
+          releaseDraft: true
+          prerelease: false
+
+      - name: Upload bundles (manual runs without a tag)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reel-video-${{ matrix.platform }}
+          path: |
+            desktop/src-tauri/target/release/bundle/nsis/*.exe
+            desktop/src-tauri/target/release/bundle/dmg/*.dmg
+          if-no-files-found: ignore

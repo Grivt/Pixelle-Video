@@ -45,6 +45,7 @@ Reel-Video 是一款跨平台桌面应用，把短视频创作变成「一句话
 | --- | --- |
 | Windows | `Reel Video_x.x.x_x64-setup.exe` |
 | macOS（Intel） | `Reel Video_x.x.x_x64.dmg` |
+| macOS（Apple Silicon） | `Reel Video_x.x.x_aarch64.dmg` |
 
 > 首次启动会自动检测 ffmpeg 等依赖，若缺失会给出对应平台的安装指引。
 
